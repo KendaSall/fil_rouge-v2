@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-db
+  labels:
+    app: fil_rouge-v2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fil_rouge-v2
+  template:
+    metadata:
+      labels:
+        app: fil_rouge-v2
+    spec:
+      containers:
+        - name: db
+          image: kendasall/fil_rouge-v2
+          ports:
+            - containerPort: 3306
