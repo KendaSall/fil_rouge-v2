@@ -16,7 +16,7 @@ pipeline {
         }
         stage("deploy to Kubernetes") {
             steps {
-                withCredentials([file(credentialsId: 'kenda', variable: 'KUBECONFIG')]) {
+                withCredentials([file(credentialsId: 'kenda', variable: 'config')]) {
                     script {
                         // Déployer sur Kubernetes
                         bat "kubectl apply -f kubernetes/dbDeploy.yaml --kubeconfig=${KUBECONFIG} --validate=false"
