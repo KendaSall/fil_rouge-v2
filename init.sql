@@ -13,5 +13,4 @@ CREATE TABLE IF NOT EXISTS utilisateurs (
     photo VARCHAR(255),
     dateNaissance DATE
     
-
 );
