@@ -1,46 +1,69 @@
 pipeline {
-    agent any  
+    agent any
+    environment {
+        // Assurez-vous que ce chemin mène à votre kubeconfig local généré par Minikube
+        KUBECONFIG = "C:\\Users\\kenda\\.kube\\config"
+        // Chemin où se trouvent vos fichiers Terraform dans votre projet
+        TERRA_DIR = "C:\\xampp\\htdocs\\fil_rouge-v2\\terraform"
+    }
     stages {
-        stage("test") {
+        stage('Initialization') {
             steps {
-                echo "hello world"
-            }
-        }
-        stage("build") {
-            steps {
+                // Affiche la version de Terraform pour le débogage
                 script {
-                    bat 'docker --version'
-                   // bat "docker-compose up -d --build"
+                    bat 'terraform --version'
                 }
             }
         }
-        stage("deploy to Kubernetes") {
+        
+        stage("Terraform Init") {
             steps {
-                withCredentials([file(credentialsId: 'kenda1', variable: 'KUBECONFIG')]) {
-                    script {
-                        // Déployer sur Kubernetes
-                        bat "kubectl apply -f kubernetes/dbDeploy.yaml --kubeconfig=${KUBECONFIG} --validate=false"
-                        bat "kubectl apply -f kubernetes/dbService.yaml --kubeconfig=${KUBECONFIG} --validate=false"
-                        bat "kubectl apply -f kubernetes/webDeploy.yaml --kubeconfig=${KUBECONFIG} --validate=false"
-                        bat "kubectl apply -f kubernetes/webService.yaml --kubeconfig=${KUBECONFIG} --validate=false"
-                    }
+                script {
+                    // Initialise Terraform
+                    bat "cd %TERRA_DIR% && terraform init"
+                }
+            }
+        }
+        
+        stage("Terraform Plan") {
+            steps {
+                script {
+                    // Exécute le plan Terraform
+                    bat "cd %TERRA_DIR% && terraform plan"
+                }
+            }
+        }
+        
+        stage("Terraform Apply") {
+            steps {
+                script {
+                    // Applique la configuration Terraform
+                    bat "cd %TERRA_DIR% && terraform apply --auto-approve"
                 }
             }
         }
     }
     post {
+        always {
+            script {
+                // Nettoie l'environnement après l'exécution du pipeline
+                bat "cd %TERRA_DIR% && terraform destroy --auto-approve"
+            }
+        }
         success {
+            // Envoyer un email de succès si le déploiement est réussi
             emailext (
                 subject: "Notification de build Jenkins - Succès",
                 body: "Le build de votre pipeline Jenkins s'est terminé avec succès.",
-                to: "kendasall22@gmail.com",
+                to: "kendasall22@gmail.com"
             )
         }
         failure {
+            // Envoyer un email d'échec si l'exécution échoue
             emailext (
                 subject: "Notification de build Jenkins - Échec",
                 body: "Le build de votre pipeline Jenkins a échoué.",
-                to: "kendasall22@gmail.com",
+                to: "kendasall22@gmail.com"
             )
         }
     }
